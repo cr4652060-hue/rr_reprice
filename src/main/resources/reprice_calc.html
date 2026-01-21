@@ -1,1 +1,838 @@
 
+<!DOCTYPE html>
+<!-- saved from url=(0083)http://localhost:63342/rr_reprice/reprice_calc.html?_ijt=8titnbo98s4mnkat2f9pqp832n -->
+<html lang="zh-CN"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+    <title>存量收回再贷利率测算（一屏版/担保联动/纯前端无数据库/网页版计算器）</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        :root{
+            --bg:#f6f7fb; --card:#fff; --bd:#e6e8ef; --txt:#0f172a; --muted:#64748b;
+            --pri:#4f7cff; --ok:#16a34a; --bad:#dc2626; --warn:#d97706;
+            --shadow:0 12px 30px rgba(0,0,0,.07);
+        }
+        *{box-sizing:border-box}
+        body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;background:var(--bg);color:var(--txt);font-size:16px}
+        .wrap{max-width:1480px;margin:14px auto;padding:0 14px}
+        h1{font-size:22px;margin:0 0 10px;font-weight:900;letter-spacing:.2px}
+        .sub{color:var(--muted);margin:2px 0 10px;line-height:1.5;font-size:14px}
+        .chips{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0 14px}
+        .chip{font-size:13px;color:#334155;background:#eef2ff;border:1px solid #dde3ff;padding:6px 12px;border-radius:999px;white-space:nowrap}
+        .stack{display:grid;grid-template-columns:1.15fr .85fr;gap:14px}
+        @media (max-width:980px){.stack{grid-template-columns:1fr}}
+        .card{background:var(--card);border:1px solid var(--bd);border-radius:18px;box-shadow:var(--shadow);padding:14px}
+        .secTitle{font-size:16px;font-weight:900;margin:0 0 12px}
+        label{display:block;font-size:13px;color:#334155;margin-bottom:6px;font-weight:700}
+        input,select{width:100%;padding:10px 12px;border:1px solid #d7dbe7;border-radius:12px;font-size:16px;background:#fff}
+        input:focus,select:focus{outline:none;border-color:#9bb4ff;box-shadow:0 0 0 4px rgba(79,124,255,.12)}
+        .grid4{display:grid;grid-template-columns:1.15fr 1.45fr .75fr .75fr;gap:12px}
+        .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+        @media (max-width:980px){.grid4{grid-template-columns:1fr 1fr}.grid2{grid-template-columns:1fr}}
+        .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-top:12px}
+        .btn{padding:11px 16px;border-radius:12px;border:1px solid #d7dbe7;background:#fff;cursor:pointer;font-size:16px;font-weight:800}
+        .btn.primary{background:var(--pri);border-color:var(--pri);color:#fff}
+        .mini{font-size:13px;color:var(--muted)}
+        .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace}
+        .hintBox{margin-top:10px;border:1px dashed #d7dbe7;border-radius:14px;padding:10px 12px;background:#fafbff;line-height:1.5}
+        .hintBad{border-color:#fecaca;background:#fff1f2}
+        .hidden{display:none}
+
+        .resultCard{border-radius:20px;border:2px solid #d7dbe7;background:linear-gradient(180deg,#ffffff 0%,#fbfcff 100%);padding:14px;box-shadow:var(--shadow)}
+        .resultTop{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}
+        .big{font-size:54px;line-height:1;font-weight:1000;letter-spacing:.6px}
+        .badge{padding:8px 14px;border-radius:999px;font-weight:1000;font-size:14px;border:1px solid transparent;white-space:nowrap}
+        .badge.ok{background:#ecfdf5;color:#065f46;border-color:#bbf7d0}
+        .badge.bad{background:#fef2f2;color:#7f1d1d;border-color:#fecaca}
+        .badge.wait{background:#f3f4f6;color:#374151;border-color:#e5e7eb}
+
+        .kv{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:12px}
+        .k{border:1px solid var(--bd);border-radius:14px;padding:12px 12px;background:#fff}
+        .k .t{font-size:13px;color:var(--muted);font-weight:700}
+        .k .v{font-size:20px;font-weight:1000;margin-top:4px}
+        .k.ok{border-color:#bbf7d0;background:#f0fdf4}
+        .k.bad{border-color:#fecaca;background:#fef2f2}
+
+        .condGrid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+        .condFull{grid-column:1/-1}
+        @media (max-width:980px){.condGrid3{grid-template-columns:1fr}.condFull{grid-column:auto}}
+        .warnLine{margin:0 0 12px;font-size:13px;color:#92400e;background:#fffbeb;border:1px solid #fde68a;padding:10px 12px;border-radius:14px;line-height:1.5;font-weight:700}
+
+        .proc{margin-top:12px;border:1px solid var(--bd);border-radius:14px;padding:12px;background:#fff}
+        .procTitle{font-weight:1000;margin:0 0 8px;font-size:14px}
+        .proc ul{margin:0;padding-left:18px}
+        .proc li{margin:6px 0;line-height:1.5}
+        .footer{margin-top:12px;font-size:13px;color:var(--muted);line-height:1.5}
+
+        /* 右侧“未填拟执行”时的两行摘要 */
+        .summary2{
+            margin-top:10px;
+            border:1px solid var(--bd);
+            border-radius:16px;
+            padding:12px;
+            background:#fff;
+        }
+        .summary2 .line{
+            display:flex;
+            justify-content:space-between;
+            gap:12px;
+            padding:10px 6px;
+            border-bottom:1px dashed #e6e8ef;
+            align-items:center;
+        }
+        .summary2 .line:last-child{border-bottom:none}
+        .summary2 .lt{font-weight:900;color:#334155}
+        .summary2 .rv{font-weight:1000}
+        .summary2 .rv.ok{color:var(--ok)}
+        .summary2 .rv.warn{color:var(--warn)}
+
+        /* 重定价建议按钮（轻量，不破坏布局） */
+        .suggest-wrap{ margin-top:10px; }
+        .suggest-btn{
+            border:1px solid rgba(99,102,241,.25);
+            background: rgba(99,102,241,.08);
+            color:#111827;
+            padding:8px 10px;
+            border-radius:999px;
+            font-weight:700;
+            font-size:13px;
+            cursor:pointer;
+            width:100%;
+        }
+        .suggest-btn:hover{ background: rgba(99,102,241,.14); }
+        .suggest-btn:active{ transform: translateY(1px); }
+        /* 三条件未启用时的灰字提示 */
+        .cond-hint{
+            margin: 10px 0 14px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            background: #f5f7fb;
+            color: #6b7280;
+            font-size: 13px;
+            border: 1px dashed #d1d5db;
+        }
+        /* 自定义导出按钮样式 */
+        #btnExportExcel {
+            padding: 10px 14px;
+            border-radius: 10px;
+            border: 1px solid #4f7cff;
+            background-color: #4f7cff;
+            color: #fff;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 150px;  /* 适当宽度 */
+            margin-top: 12px;  /* 上边距，避免过于紧凑 */
+            text-align: center;
+            display: inline-block; /* 按钮不占满整行 */
+        }
+
+        /* 鼠标悬停效果 */
+        #btnExportExcel:hover {
+            background-color: #3e68cc;
+            border-color: #3e68cc;
+            transform: translateY(-2px);  /* 上移效果 */
+        }
+
+        /* 鼠标点击效果 */
+        #btnExportExcel:active {
+            transform: translateY(2px);  /* 点击时下沉效果 */
+        }
+
+        /* 聚焦时的效果 */
+        #btnExportExcel:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(79, 124, 255, 0.3);  /* 聚焦时边框颜色 */
+        }
+        /* 使用 Flexbox 来将按钮右对齐 */
+        .flex-right {
+            display: flex;
+            justify-content: flex-end;  /* 让按钮右对齐 */
+            width: 100%;
+        }
+        /* 添加右对齐的布局 */
+        .wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start; /* 默认左对齐 */
+        }
+        /* 顶部标题区：左标题 + 右按钮 */
+        .pageHead{
+            display:flex;
+            justify-content:space-between;
+            align-items:flex-start;
+            gap:14px;
+            margin-bottom:10px;
+        }
+        .pageHeadLeft{ flex:1; min-width: 0; }
+        .pageHeadRight{ flex:0 0 auto; }
+
+        /* 右上角导出按钮：更紧凑、更协调 */
+        .btnExportTop{
+            padding:10px 14px;
+            border-radius:12px;
+            font-size:14px;
+            font-weight:900;
+            box-shadow:0 10px 18px rgba(79,124,255,.18);
+            white-space:nowrap;
+        }
+
+
+    </style>
+</head>
+
+<body>
+
+
+<div class="wrap">
+
+    <div class="pageHead">
+        <div class="pageHeadLeft">
+            <h1>存量收回再贷利率测算（一屏版 / 担保联动 / 纯前端无数据库 / 网页版计算器）</h1>
+            <div class="sub">按制度文字三条：先输入原利率直接出提示；若提示“需要三条件”，再填写三条件；最后填拟执行利率判断是否需上报。</div>
+        </div>
+
+        <div class="pageHeadRight">
+            <button class="btn primary btnExportTop" id="btnExportExcel" type="button">导出为Excel</button>
+        </div>
+    </div>
+
+    <div class="chips">
+        <span class="chip">不连网</span>
+        <span class="chip">不存数据</span>
+        <span class="chip">无基础10BP</span>
+        <span class="chip">逾期加点：10BP/次，单项封顶30BP</span>
+        <span class="chip">互联网负面不含“仅作为原告”</span>
+    </div>
+
+
+<!--    <h1>存量收回再贷利率测算（一屏版 / 担保联动 / 纯前端无数据库 / 网页版计算器）</h1>-->
+<!--    <div class="sub">按制度文字三条：先输入原利率直接出提示；若提示“需要三条件”，再填写三条件；最后填拟执行利率判断是否需上报。</div>-->
+<!--    <div class="flex-right">-->
+<!--        <button class="btn primary" id="btnExportExcel">导出为Excel</button>-->
+<!--    </div>-->
+
+<!--    <div class="chips">-->
+<!--        <span class="chip">不连网</span>-->
+<!--        <span class="chip">不存数据</span>-->
+<!--        <span class="chip">无基础10BP</span>-->
+<!--        <span class="chip">逾期加点：10BP/次，单项封顶30BP</span>-->
+<!--        <span class="chip">互联网负面不含“仅作为原告”</span>-->
+<!--    </div>-->
+    <!-- 使用 Flexbox 使按钮右对齐 -->
+
+
+    <div class="stack">
+        <!-- 左：输入 -->
+        <div class="card">
+            <div class="secTitle">输入（按顺序填，越少越好）</div>
+
+            <div class="grid4">
+                <div>
+                    <label>贷款产品</label>
+                    <select id="product"><option value="畅享贷">畅享贷</option><option value="复工复产贷">复工复产贷</option><option value="惠农贷">惠农贷</option><option value="普惠体验贷">普惠体验贷</option><option value="原押贷款">原押贷款</option><option value="助赢贷">助赢贷</option></select>
+                </div>
+                <div>
+                    <label>担保方式（仅显示该产品可用）</label>
+                    <select id="guarantee"><option value="抵押">抵押</option><option value="保证">保证</option><option value="信用">信用</option></select>
+                </div>
+                <div>
+                    <label>额度（万元）</label>
+                    <input id="amount" type="number" min="0" value="100">
+                </div>
+                <div>
+                    <label>期限（月）</label>
+                    <input id="term" type="number" min="1" value="36">
+                </div>
+            </div>
+
+            <div class="grid2" style="margin-top:12px;">
+                <div>
+                    <label>原合同/当前利率（%）</label>
+                    <input id="origRate" type="number" step="0.01" value="6">
+                </div>
+                <div>
+                    <label>拟执行利率（%）（可先不填）</label>
+                    <input id="execRate" type="number" step="0.01" placeholder="例如：7.50">
+                </div>
+            </div>
+
+            <div class="row">
+                <button class="btn primary" id="btnCalc">计算/刷新</button>
+                <button class="btn" id="btnClearExec">清空拟执行</button>
+                <span class="mini mono">BP换算：10BP=0.10%，100BP=1.00%</span>
+            </div>
+
+            <div id="quickBox" class="hintBox mini">提示：原利率(3.70%) &lt; 最低利率(3.80%) → 需要判断三条件；不满足将按规则加点重定价。</div>
+
+            <div id="noMatchAlert" class="hintBox hintBad mini hidden">
+                未匹配到最低利率档位：请核对【产品/担保/额度/期限】或补充利率表。已停止计算。
+            </div>
+            <div id="condNotNeededHint" class="cond-hint hidden">
+                本笔业务不需要填写“三条件”，请继续填写拟执行利率即可。
+            </div>
+            <!-- 三条件：只有需要判断时才显示 -->
+            <div id="condCard" class="" style="margin-top:14px;">
+                <div class="secTitle" style="margin-bottom:10px;">三条件（仅当“需要判断”时填写）</div>
+                <p class="warnLine">当前：原利率低于最低利率，需要判断三条件；不满足将按规则加点确定重定价利率。</p>
+
+                <div class="condGrid3">
+                    <div class="k">
+                        <div class="t">近一年逾期次数</div>
+                        <input id="overdue" type="number" value="0" min="0">
+                        <div class="mini">10BP/次，逾期单项最高30BP</div>
+                    </div>
+
+                    <div class="k">
+                        <div class="t">资金归行率（%）<span class="mini">（阈值8%）</span></div>
+                        <input id="flow" type="number" value="8" step="0.1">
+                        <div class="mini">≥8% 为满足；不足则 +10BP</div>
+                    </div>
+
+                    <div class="k">
+                        <div class="t">互联网负面信息</div>
+                        <select id="negative">
+                            <option value="none">无</option>
+                            <option value="nonplaintiff">有（非原告）</option>
+                            <option value="plaintiff">仅作为原告（不计负面）</option>
+                        </select>
+                        <div class="mini">“仅原告”不计负面；非原告负面 +10BP</div>
+                    </div>
+
+                    <div class="k condFull">
+                        <div class="t">三条件是否满足（结论 + 说明）</div>
+                        <div id="condOk" class="v mono">不满足（需加点重定价）</div>
+                        <div id="condDetail" class="mini">逾期=3次（要求0）→不满足；归行率=0.0%（要求≥8%）→不满足；负面=有（非原告）→不满足</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 右：输出 -->
+        <div class="resultCard">
+            <div class="secTitle">输出（结论一眼看到）</div>
+
+            <div class="resultTop">
+                <div>
+                    <div class="mini">最终建议执行利率</div>
+                    <div id="finalRate" class="big mono">4.20%</div>
+                    <div id="finalSub" class="mini" style="margin-top:8px;">你填的拟执行(3.80%) &lt; 制度最低要求(4.20%)，建议至少按4.20%执行。</div>
+                </div>
+                <div id="reportBadge" class="badge bad">需上报审批</div>
+            </div>
+
+            <!-- 只要没填拟执行，就只显示这个两行摘要 -->
+            <div id="summary2" class="summary2 hidden">
+                <div class="line">
+                    <div class="lt">要不要走三条件</div>
+                    <div id="sumNeedCond" class="rv">—</div>
+                </div>
+                <div class="line">
+                    <div class="lt">制度最低要求（最低允许执行）</div>
+                    <div id="sumRequired" class="rv">—</div>
+                </div>
+            </div>
+
+            <!-- 完整展开区域：填了拟执行才显示 -->
+            <div id="fullOut" class="">
+                <div class="kv">
+                    <div class="k">
+                        <div class="t">最低利率（取区间左值）</div>
+                        <div id="outMin" class="v mono">3.80</div>
+                    </div>
+                    <div class="k">
+                        <div class="t">制度最低要求（最低允许执行）</div>
+                        <div id="outReq" class="v mono">4.20</div>
+                    </div>
+                    <div class="k">
+                        <div class="t">重定价利率（仅不满足三条件时）</div>
+                        <div id="outReprice" class="v mono">4.20</div>
+                        <div class="suggest-wrap" id="repriceSuggestWrap" style="display:none;">
+                        </div>
+
+                    </div>
+                    <div class="k">
+                        <div class="t">是否需上报</div>
+                        <div id="outReport" class="v mono">需上报定价审批</div>
+                    </div>
+                </div>
+
+                <div class="proc">
+                    <div class="procTitle">计算过程（命中规则 + 加点明细）</div>
+                    <div id="ruleDesc" class="mini">命中情形④：原利率&lt;最低利率 且三条件不满足 → 加点合计=50BP → 重定价=4.20% → 制度最低要求=4.20%。</div>
+                    <ul id="procList" class="mini"><li>① 匹配最低利率档位：产品=惠农贷，担保=抵押，额度=300万，期限=36月</li><li>② 命中区间：额度[200, 999999]（含），期限[1, 36]（含），最低利率=3.80%</li><li>③ 原利率(3.70%) &lt; 最低利率(3.80%) → 进入三条件判断</li><li>④ 三条件：逾期=3次（要求0）→不满足；归行率=0.0%（要求≥8%）→不满足；负面=有（非原告）→不满足 → 不满足</li><li>⑤ 加点明细：</li><li>   - 逾期：3次 → +30BP，但单项封顶30BP → 实加 +30BP</li><li>   - 归行率：0.0%（阈值8%）→ +10BP</li><li>   - 互联网负面：有（非原告） → +10BP</li><li>   - 加点合计：50BP = 0.50%</li><li>⑥ 重定价利率 = 原利率(3.70%) + 0.50% = 4.20%</li><li>⑦ 制度最低要求 requiredRate = 重定价利率 = 4.20%</li><li>⑧ 拟执行=3.80%，与制度最低要求=4.20%对比 → 低于要求：需上报</li></ul>
+                </div>
+            </div>
+
+            <div class="footer">
+                纯前端单页：不连库、不连网、不存客户数据。<b>无基础10BP</b>；逾期加点单项≤30BP；互联网负面不含“仅作为原告”。
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    /* =========================================================
+       存量收回再贷利率测算：四步流程版（可复制）
+       口径（你最终确认版）：
+       - 规则1：orig >= minR → required=orig
+       - 规则2：orig < minR 且（exec未填 或 exec>=minR）→ required=minR（不走三条件）
+       - 规则3-满足：orig < minR 且 exec<minR 且三条件满足 → required=orig
+       - 规则3-不满足：orig < minR 且 exec<minR 且三条件不满足
+            reprice = orig + 加点
+            required = min(reprice, minR)
+         （也就是：reprice<minR 用reprice；reprice>minR 用minR）
+       ========================================================= */
+
+    /* ========== 0) 全局兜底：任何报错都显示在 quickBox ========== */
+    window.addEventListener("error", function(e){
+        try{
+            const qb = document.getElementById("quickBox");
+            if(qb){
+                qb.classList.add("hintBad");
+                qb.textContent = "【脚本错误】" + (e && e.message ? e.message : "未知错误") + "";
+            }
+        }catch(_){}
+    });
+
+    /* =========================
+       1) 最低利率档位（闭区间匹配：含）
+       ========================= */
+    const RATE_TABLE = [
+        // 1 普惠体验贷（1年期 非循环）
+        { product:"普惠体验贷", guarantee:"信用", amountMin:0, amountMax:2, termMin:1, termMax:12, minRate:3.10 ,maxRate:5.10 },
+        { product:"普惠体验贷", guarantee:"保证", amountMin:0, amountMax:2, termMin:1, termMax:12, minRate:3.10,maxRate:5.10  },
+        { product:"普惠体验贷", guarantee:"抵押", amountMin:0, amountMax:2, termMin:1, termMax:12, minRate:3.10,maxRate:5.10  },
+        { product:"普惠体验贷", guarantee:"信用", amountMin:2, amountMax:5, termMin:1, termMax:12, minRate:3.70 ,maxRate:5.70 },
+        { product:"普惠体验贷", guarantee:"保证", amountMin:2, amountMax:5, termMin:1, termMax:12, minRate:3.70 ,maxRate:5.70 },
+        { product:"普惠体验贷", guarantee:"抵押", amountMin:2, amountMax:5, termMin:1, termMax:12, minRate:3.70,maxRate:5.70  },
+
+        // 2 畅享贷（3年期以内 循环）
+        { product:"畅享贷", guarantee:"信用", amountMin:0, amountMax:70, termMin:1, termMax:36, minRate:3.10 ,maxRate:6.10 },
+        { product:"畅享贷", guarantee:"保证", amountMin:0, amountMax:70, termMin:1, termMax:36, minRate:3.10 ,maxRate:6.10 },
+        { product:"畅享贷", guarantee:"抵押", amountMin:0, amountMax:70, termMin:1, termMax:36, minRate:3.10 ,maxRate:6.10 },
+        { product:"畅享贷", guarantee:"信用", amountMin:70, amountMax:150, termMin:1, termMax:36, minRate:3.45 ,maxRate:6.45 },
+        { product:"畅享贷", guarantee:"保证", amountMin:70, amountMax:150, termMin:1, termMax:36, minRate:3.45 ,maxRate:6.45  },
+        { product:"畅享贷", guarantee:"抵押", amountMin:70, amountMax:150, termMin:1, termMax:36, minRate:3.45  ,maxRate:6.45 },
+        { product:"畅享贷", guarantee:"信用", amountMin:150, amountMax:999999, termMin:1, termMax:36, minRate:3.60 ,maxRate:6.60 },
+        { product:"畅享贷", guarantee:"保证", amountMin:150, amountMax:999999, termMin:1, termMax:36, minRate:3.60,maxRate:6.60 },
+        { product:"畅享贷", guarantee:"抵押", amountMin:150, amountMax:999999, termMin:1, termMax:36, minRate:3.60 ,maxRate:6.60 },
+
+        // 3 惠农贷（3年期以内 循环）
+        { product:"惠农贷", guarantee:"抵押", amountMin:0, amountMax:200, termMin:1, termMax:36, minRate:4.50 ,maxRate:7.80 },
+        { product:"惠农贷", guarantee:"抵押", amountMin:200, amountMax:999999, termMin:1, termMax:36, minRate:3.80 ,maxRate:7.10 },
+        { product:"惠农贷", guarantee:"保证", amountMin:0, amountMax:30, termMin:1, termMax:36, minRate:6.50 ,maxRate:9.80 },
+        { product:"惠农贷", guarantee:"保证", amountMin:30, amountMax:100, termMin:1, termMax:36, minRate:7.00,maxRate:10.30 },
+        { product:"惠农贷", guarantee:"保证", amountMin:100, amountMax:999999, termMin:1, termMax:36, minRate:7.50 ,maxRate:10.80},
+        { product:"惠农贷", guarantee:"信用", amountMin:0, amountMax:30, termMin:1, termMax:36, minRate:7.00 ,maxRate:10.30},
+
+        // 4 助赢贷（3年期以内 循环）
+        { product:"助赢贷", guarantee:"抵押", amountMin:500, amountMax:999999, termMin:1, termMax:36, minRate:3.60 ,maxRate:7.30},
+        { product:"助赢贷", guarantee:"抵押", amountMin:200, amountMax:500, termMin:1, termMax:36, minRate:3.80 ,maxRate:7.50},
+        { product:"助赢贷", guarantee:"抵押", amountMin:0, amountMax:200, termMin:1, termMax:36, minRate:4.35 ,maxRate:8.05},
+        { product:"助赢贷", guarantee:"保证", amountMin:0, amountMax:50, termMin:1, termMax:36, minRate:6.00 ,maxRate:9.70},
+        { product:"助赢贷", guarantee:"保证", amountMin:50, amountMax:100, termMin:1, termMax:36, minRate:6.50 ,maxRate:10.20},
+        { product:"助赢贷", guarantee:"保证", amountMin:100, amountMax:200, termMin:1, termMax:36, minRate:7.00 ,maxRate:10.70},
+        { product:"助赢贷", guarantee:"保证", amountMin:200, amountMax:999999, termMin:1, termMax:36, minRate:7.50 ,maxRate:11.20},
+        { product:"助赢贷", guarantee:"信用", amountMin:0, amountMax:30, termMin:1, termMax:36, minRate:6.50 ,maxRate:10.20},
+
+        // 5 复工复产贷（3年期以内 循环/非循环）
+        { product:"复工复产贷", guarantee:"抵押", amountMin:500, amountMax:999999, termMin:1, termMax:36, minRate:3.60 ,maxRate:7.30},
+        { product:"复工复产贷", guarantee:"抵押", amountMin:200, amountMax:500, termMin:1, termMax:36, minRate:3.80 ,maxRate:7.50},
+        { product:"复工复产贷", guarantee:"抵押", amountMin:0, amountMax:200, termMin:1, termMax:36, minRate:4.35 ,maxRate:8.05},
+        { product:"复工复产贷", guarantee:"保证", amountMin:0, amountMax:200, termMin:1, termMax:36, minRate:6.50 ,maxRate:10.20},
+        { product:"复工复产贷", guarantee:"保证", amountMin:200, amountMax:500, termMin:1, termMax:36, minRate:7.00 ,maxRate:10.70},
+        { product:"复工复产贷", guarantee:"保证", amountMin:500, amountMax:999999, termMin:1, termMax:36, minRate:7.50 ,maxRate:11.20},
+        { product:"复工复产贷", guarantee:"信用", amountMin:0, amountMax:100, termMin:1, termMax:36, minRate:7.00 ,maxRate:10.70},
+        { product:"复工复产贷", guarantee:"信用", amountMin:100, amountMax:999999, termMin:1, termMax:36, minRate:7.50 ,maxRate:11.20},
+
+        // 6 原押贷款（存量现押客户）
+        { product:"原押贷款", guarantee:"质押", amountMin:0, amountMax:999999, termMin:1, termMax:36, minRate:3.45,maxRate:3.45 }
+    ];
+
+    /* =========================
+       2) 工具函数
+       ========================= */
+    const $ = (id)=>document.getElementById(id);
+
+    function toNum(v){
+        const s = (v===undefined || v===null) ? "" : String(v).trim();
+        if(!s) return null;
+        const n = parseFloat(s);
+        return Number.isFinite(n) ? n : null;
+    }
+    function toInt(v){
+        const s = (v===undefined || v===null) ? "" : String(v).trim();
+        if(!s) return 0;
+        const n = parseInt(s,10);
+        return Number.isFinite(n) ? n : 0;
+    }
+    function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
+
+    function setText(id, txt){
+        const el = $(id);
+        if(el) el.textContent = txt;
+    }
+    function show(id){
+        const el = $(id);
+        if(el) el.classList.remove("hidden");
+    }
+    function hide(id){
+        const el = $(id);
+        if(el) el.classList.add("hidden");
+    }
+    function clearProc(){
+        if($("procList")) $("procList").innerHTML = "";
+    }
+    function addProc(line){
+        if(!$("procList")) return;
+        const li = document.createElement("li");
+        li.textContent = line;
+        $("procList").appendChild(li);
+    }
+
+    /* =========================
+       3) 下拉联动（不写死默认value）
+       ========================= */
+    function getProducts(){
+        return Array.from(new Set(RATE_TABLE.map(r=>r.product))).sort((a,b)=>a.localeCompare(b,"zh-CN"));
+    }
+    function getGuaranteesByProduct(p){
+        return Array.from(new Set(RATE_TABLE.filter(r=>r.product===p).map(r=>r.guarantee)));
+    }
+    function renderProductOptions(){
+        const ps = getProducts();
+        $("product").innerHTML = ps.map(p=>`<option value="${p}">${p}</option>`).join("");
+    }
+    function updateGuaranteeOptions(){
+        const p = $("product").value;
+        const gSel = $("guarantee");
+        const gs = getGuaranteesByProduct(p);
+        const cur = gSel.value;
+        gSel.innerHTML = gs.map(g=>`<option value="${g}">${g}</option>`).join("");
+        if(gs.length && !gs.includes(cur)) gSel.value = gs[0];
+    }
+
+    function findMinRateRow(p,g,amt,term){
+        const hits = RATE_TABLE.filter(r =>
+            r.product===p &&
+            r.guarantee===g &&
+            amt>=r.amountMin && amt<=r.amountMax &&
+            term>=r.termMin && term<=r.termMax
+        );
+        if(!hits.length) return null;
+        // 选“最窄区间”优先，避免重叠时选到宽口径
+        hits.sort((a,b)=>{
+            const aw=(a.amountMax-a.amountMin), bw=(b.amountMax-b.amountMin);
+            if(aw!==bw) return aw-bw;
+            const at=(a.termMax-a.termMin), bt=(b.termMax-b.termMin);
+            if(at!==bt) return at-bt;
+            return a.minRate-b.minRate;
+        });
+        return hits[0];
+    }
+
+    /* =========================
+       4) 右侧展示：两行/展开
+       ========================= */
+    function resetUIHard(){
+        // 刷新进入：必须无结论
+        hide("noMatchAlert");
+        hide("condCard");
+        $("quickBox") && $("quickBox").classList.remove("hintBad");
+        clearProc();
+
+        // 右侧：统一清空
+        setText("finalRate","—");
+        setText("finalSub","建议：先填【产品/担保/额度/期限/原利率】；再填【拟执行利率】判断是否上报。");
+        $("reportBadge").className = "badge wait";
+        $("reportBadge").textContent = "未计算";
+
+        // 两行结论区
+        show("summary2");
+        hide("fullOut");
+        setText("sumNeedCond","—");
+        setText("sumRequired","—");
+
+        // 展开区（也清掉，避免“看起来没刷新”）
+        setText("outMin","—");
+        setText("outReq","—");
+        setText("outReprice","—");
+        setText("outReport","—");
+        setText("ruleDesc","—");
+    }
+
+    function renderCollapsed(needCondText, requiredRate){
+        show("summary2");
+        hide("fullOut");
+        setText("sumNeedCond", needCondText);
+        setText("sumRequired", requiredRate!==null ? requiredRate.toFixed(2)+"%" : "—");
+
+        setText("finalRate","—");
+        setText("finalSub","未填写拟执行利率：右侧仅展示两行结论（要不要走三条件 / 制度最低要求）。");
+        $("reportBadge").className = "badge wait";
+        $("reportBadge").textContent = "未填拟执行";
+    }
+
+    function renderExpanded(minR, required, repriceOrNull, routeText, exec){
+        hide("summary2");
+        show("fullOut");
+
+        setText("outMin", minR.toFixed(2));
+        setText("outReq", required.toFixed(2));
+        setText("outReprice", (typeof repriceOrNull==="number") ? repriceOrNull.toFixed(2) : "—");
+        setText("ruleDesc", routeText);
+
+        // “最终建议执行利率”：合规角度=至少 required；如果客户经理填的更高，就显示更高
+        const recommend = Math.max(exec, required);
+        setText("finalRate", recommend.toFixed(2)+"%");
+
+        const needReport = exec < required;
+        setText("outReport", needReport ? "需上报定价审批" : "不需上报定价审批");
+        $("reportBadge").className = "badge " + (needReport ? "bad" : "ok");
+        $("reportBadge").textContent = needReport ? "需上报审批" : "不需上报";
+
+        if(needReport){
+            setText("finalSub", `拟执行(${exec.toFixed(2)}%) < 制度最低要求(${required.toFixed(2)}%)，建议至少按${required.toFixed(2)}%执行。`);
+        }else{
+            setText("finalSub", `拟执行(${exec.toFixed(2)}%) ≥ 制度最低要求(${required.toFixed(2)}%)，不需上报。`);
+        }
+    }
+
+    /* =========================
+       5) 四步流程计算
+       ========================= */
+    function calc(){
+        hide("noMatchAlert");
+        hide("condCard");
+        $("quickBox") && $("quickBox").classList.remove("hintBad");
+        clearProc();
+
+        const p = $("product").value;
+        const g = $("guarantee").value;
+        const amt  = toNum($("amount").value);
+        const term = toInt($("term").value);
+        const orig = toNum($("origRate").value);
+        const exec = toNum($("execRate").value); // 可为空
+
+        // 未满足基础输入：不算
+        if(amt===null || term<=0 || orig===null){
+            renderCollapsed("—", null);
+            setText("quickBox","提示：请先填【产品/担保/额度/期限/原利率】。拟执行利率可后填。");
+            $("reportBadge").className = "badge wait";
+            $("reportBadge").textContent = "待输入";
+            return;
+        }
+
+        // STEP1：匹配 minR
+        const row = findMinRateRow(p,g,amt,term);
+        if(!row){
+            show("noMatchAlert");
+            $("quickBox") && $("quickBox").classList.add("hintBad");
+            renderCollapsed("—", null);
+            setText("quickBox","未匹配到最低利率档位：请核对【产品/担保/额度/期限】或补充利率表。");
+            return;
+        }
+        const minR = row.minRate;
+
+        addProc(`① 匹配最低利率档位：产品=${p}，担保=${g}，额度=${amt}万，期限=${term}月`);
+        addProc(`② 命中区间：额度[${row.amountMin}, ${row.amountMax}]（含），期限[${row.termMin}, ${row.termMax}]（含），最低利率minR=${minR.toFixed(2)}%`);
+        addProc(`③ 输入：原利率orig=${orig.toFixed(2)}%${exec===null?"；拟执行未填":("；拟执行exec="+exec.toFixed(2)+"%")}`);
+
+        // STEP2：走哪条规则（只按你这四步口径）
+        let needCond = false;
+        let required = null;
+        let reprice = null;
+        let routeText = "";
+
+        // 规则1：orig >= minR
+        if(orig >= minR){
+            needCond = false;
+            required = orig;
+            routeText = `命中【规则1】：原利率(${orig.toFixed(2)}%) ≥ 本表最低利率(${minR.toFixed(2)}%) → 制度最低要求=原利率(${required.toFixed(2)}%)。`;
+            addProc(`④ 路径：规则1 → required=orig=${required.toFixed(2)}%`);
+        }else{
+            // orig < minR：规则2 or 规则3
+            if(exec === null || exec >= minR){
+                // 规则2：不进入三条件（未填拟执行 或 拟执行>=minR）
+                needCond = false;
+                required = minR;
+                routeText = `命中【规则2】：原利率(${orig.toFixed(2)}%) < 本表最低利率(${minR.toFixed(2)}%)，且${exec===null?"未填写拟执行":"拟执行≥最低利率"} → 不走三条件，制度最低要求=minR(${required.toFixed(2)}%)。`;
+                addProc(`④ 路径：规则2 → required=minR=${required.toFixed(2)}%`);
+            }else{
+                // exec < minR：进入规则3（三条件）
+                needCond = true;
+                show("condCard");
+
+                const overdueN = toInt($("overdue").value);
+                const flowN = toNum($("flow").value);
+                const neg = $("negative").value;
+
+                const cond1 = (overdueN === 0);
+                const cond2 = (flowN !== null && flowN >= 8);
+                const cond3 = (neg === "none" || neg === "plaintiff");
+                const ok3 = cond1 && cond2 && cond3;
+
+                const negText = (neg==="none" ? "无" : (neg==="plaintiff" ? "仅原告（不计负面）" : "有（非原告）"));
+                const detail = [
+                    `逾期=${overdueN}次（要求0）→${cond1?"满足":"不满足"}`,
+                    `归行率=${flowN===null?"未填":flowN.toFixed(1)}%（要求≥8%）→${cond2?"满足":"不满足"}`,
+                    `负面=${negText}→${cond3?"满足":"不满足"}`
+                ].join("；");
+                setText("condDetail", detail);
+
+                addProc(`④ 进入规则3：因为 exec(${exec.toFixed(2)}%) < minR(${minR.toFixed(2)}%) → 必须判断三条件`);
+                addProc(`⑤ 三条件：${detail}`);
+
+                if(ok3){
+                    // 规则3-满足：required=orig
+                    setText("condOk", "满足（可按原利率执行）");
+                    required = orig;
+                    routeText = `命中【规则3-满足】：三条件满足：制度允许最低按原利率 ${orig.toFixed(2)}% 执行；如需提高收益，可执行更高利率（例如 ${(orig+0.05).toFixed(2)}%），不需上报。`;
+                    addProc(`⑥ 规则3-满足 → required=orig=${required.toFixed(2)}%`);
+                }else{
+                    // 规则3-不满足：计算 reprice；required = min(reprice, minR)（你最终口径）
+                    setText("condOk", "不满足（按规则加点测算重定价）");
+
+                    const overdueAdd = clamp(overdueN * 10, 0, 30);
+                    const flowAdd = (flowN !== null && flowN < 8) ? 10 : 0;
+                    const negAdd  = (neg === "nonplaintiff") ? 10 : 0;
+                    const addBP = overdueAdd + flowAdd + negAdd;
+
+                    reprice = +(orig + addBP/100).toFixed(2);
+
+                    // 你确认的口径：required = min(reprice, minR)
+                    required = Math.min(reprice, minR);
+
+                    routeText =
+                        `命中【规则3-不满足】：三条件不满足 → 重定价reprice=原利率(${orig.toFixed(2)}%)+加点(${addBP}BP)=${reprice.toFixed(2)}%。` +
+                        ` 制度最低要求 required=min(reprice, minR)=min(${reprice.toFixed(2)}%, ${minR.toFixed(2)}%)=${required.toFixed(2)}%。`;
+
+                    addProc(`⑥ 加点明细：逾期+${overdueAdd}BP（单项封顶30BP）；归行率+${flowAdd}BP；负面+${negAdd}BP；合计+${addBP}BP`);
+                    addProc(`⑦ 重定价：reprice=${reprice.toFixed(2)}%`);
+                    addProc(`⑧ 规则3-不满足：required=min(reprice, minR)=${required.toFixed(2)}%`);
+                }
+            }
+        }
+
+        // STEP3：没填拟执行 → 只给两行结论
+        if(exec === null){
+            renderCollapsed(needCond ? "需要（因为拟执行<本表最低利率）" : "不需要", required);
+            setText("quickBox", `当前：minR=${minR.toFixed(2)}%，制度最低要求required=${required.toFixed(2)}%。填“拟执行利率”后才判断是否上报。`);
+            return;
+        }
+
+        // STEP4：填了拟执行 → 展开并判断是否上报
+        renderExpanded(minR, required, reprice, routeText, exec);
+    }
+
+    /* =========================
+       6) 实时绑定（防抖）
+       ========================= */
+    let _t = null;
+    function calcDebounced(){
+        clearTimeout(_t);
+        _t = setTimeout(calc, 60);
+    }
+
+    function init(){
+        renderProductOptions();
+        updateGuaranteeOptions();
+
+        // 刷新进入：强制清空右侧结论（解决“像没刷新一样”）
+        resetUIHard();
+
+        // 任何输入变化 → 自动算（解决“不实时更新”）
+        ["product","guarantee","amount","term","origRate","execRate","overdue","flow","negative"].forEach(id=>{
+            const el = $(id);
+            if(!el) return;
+            el.addEventListener("input", calcDebounced);
+            el.addEventListener("change", calcDebounced);
+        });
+
+        // 按钮：手动算 / 清空拟执行
+        if($("btnCalc")) $("btnCalc").addEventListener("click", calc);
+        if($("btnClearExec")) $("btnClearExec").addEventListener("click", ()=>{
+            $("execRate").value = "";
+            calc();
+        });
+
+// =========================
+// 拟执行利率：强制不得低于原利率
+// 触发：输入到>=3位（不含小数点） 或 失焦
+// =========================
+        function normalizeRateStr(s){
+            // 去空格，保留数字和点
+            return (s || "").toString().trim();
+        }
+        function digitsCount(s){
+            // 统计数字位数（不含小数点）
+            const m = normalizeRateStr(s).match(/\d/g);
+            return m ? m.length : 0;
+        }
+        function forceExecNotBelowOrig(triggerLabel){
+            const orig = toNum($("origRate").value);
+            if(orig === null) return; // 原利率没填就不做强制
+
+            const execStr = normalizeRateStr($("execRate").value);
+            if(execStr === "") return; // 没填拟执行，不强制（保留你现在“未填拟执行”的逻辑）
+
+            const exec = toNum(execStr);
+            if(exec === null) return;
+
+            // 关键规则：拟执行不得低于原利率
+            if(exec < orig){
+                // 回填原利率（保留两位）
+                $("execRate").value = orig.toFixed(2);
+
+                // 给一个轻提示（不改布局，只改 quickBox 文案）
+                try{
+                    const qb = $("quickBox");
+                    if(qb){
+                        qb.classList.add("hintBad"); // 如果不想红色，这行可以删
+                        qb.textContent = `提示：拟执行利率不能低于原利率，已自动修正为原利率(${orig.toFixed(2)}%)。`;
+                    }
+                }catch(_){}
+
+                // 强制后立刻刷新计算结果
+                calc();
+            }
+        }
+
+// 在 init() 里加下面这些监听（建议放在你现有事件绑定后面）
+        (function bindExecGuard(){
+            const execEl = $("execRate");
+            if(!execEl) return;
+
+            let lastCheckedDigits = 0;
+
+            // 输入时：达到“3位数字”就检查一次（例如 3.1 / 7.0 / 10. / 100 都会触发）
+            execEl.addEventListener("input", () => {
+                const d = digitsCount(execEl.value);
+                if(d >= 3 && d !== lastCheckedDigits){
+                    lastCheckedDigits = d;
+                    forceExecNotBelowOrig("input>=3digits");
+                }
+            });
+
+            // 失焦：一定检查
+            execEl.addEventListener("blur", () => {
+                forceExecNotBelowOrig("blur");
+            });
+
+            // 回车/变更：也检查（更保险）
+            execEl.addEventListener("change", () => {
+                forceExecNotBelowOrig("change");
+            });
+        })();
+
+    }
+
+    init();
+
+</script>
+
+<script src="xlsx.full.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
